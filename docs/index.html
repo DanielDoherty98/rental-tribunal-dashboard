@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UK Rental Tribunal Decisions - Dashboard</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="topbar">
+  <div>
+    <h1>UK Rental Tribunal Decisions</h1>
+    <p class="sub">Section 13 rent determinations published on GOV.UK &middot;
+       all rents shown as monthly equivalents (weekly &times; 52 &divide; 12)</p>
+  </div>
+  <div class="meta">
+    <span id="generated">Loading&hellip;</span>
+    <button id="exportBtn" class="btn">Export filtered CSV</button>
+  </div>
+</header>
+
+<section class="filters">
+  <label>Search<input id="fSearch" type="search" placeholder="address, landlord, case ref"></label>
+  <label>City<select id="fCity"><option value="">All</option></select></label>
+  <label>Region<select id="fRegion"><option value="">All</option></select></label>
+  <label>Outcome<select id="fOutcome"><option value="">All</option></select></label>
+  <label>RRA status<select id="fRra"><option value="">All</option></select></label>
+  <label>Year<select id="fYear"><option value="">All</option></select></label>
+  <label>Confidence<select id="fConf"><option value="">All</option></select></label>
+  <label class="chk"><input id="fDetermined" type="checkbox"> Determined only</label>
+  <label class="chk"><input id="fClean" type="checkbox" checked> Hide rows needing review</label>
+  <button id="resetBtn" class="btn ghost">Reset</button>
+</section>
+
+<section class="kpis" id="kpis"></section>
+
+<section class="grid">
+  <div class="card wide"><h2>Decisions over time</h2><canvas id="chTime"></canvas></div>
+  <div class="card"><h2>Outcome mix</h2><canvas id="chOutcome"></canvas></div>
+  <div class="card"><h2>Median rents by city <span class="hint">top 15 by volume</span></h2>
+    <canvas id="chCity"></canvas></div>
+  <div class="card"><h2>Uplift sought vs determined <span class="hint">median %, by city</span></h2>
+    <canvas id="chUplift"></canvas></div>
+  <div class="card"><h2>Determined rent distribution <span class="hint">&pound; per month</span></h2>
+    <canvas id="chDist"></canvas></div>
+  <div class="card"><h2>Pre-RRA vs Post-RRA <span class="hint">against the landlord's ask</span></h2>
+    <canvas id="chRra"></canvas></div>
+  <div class="card wide"><h2>Where the decisions are
+    <span class="hint">bubble size = volume, colour = median determined rent</span></h2>
+    <div id="map"></div></div>
+</section>
+
+<section class="card wide">
+  <h2>Decisions <span class="hint" id="tableCount"></span></h2>
+  <div class="tablewrap">
+    <table id="tbl">
+      <thead><tr>
+        <th data-k="case_reference">Case ref</th>
+        <th data-k="property">Property</th>
+        <th data-k="city">City</th>
+        <th data-k="postcode">Postcode</th>
+        <th data-k="landlord_representative">Landlord / representative</th>
+        <th data-k="original_rent_period">Basis</th>
+        <th data-k="original_rent_monthly" class="num">Original pcm</th>
+        <th data-k="rent_sought_monthly" class="num">Sought pcm</th>
+        <th data-k="uplift_sought_pct" class="num">Uplift sought %</th>
+        <th data-k="tenant_proposed_rent_monthly" class="num">Tenant proposed pcm</th>
+        <th data-k="landlord_proposed_rent_monthly" class="num">Landlord proposed pcm</th>
+        <th data-k="determined_rent_monthly" class="num">Determined pcm</th>
+        <th data-k="uplift_determined_pct" class="num">Uplift determined %</th>
+        <th data-k="outcome_category">Outcome</th>
+        <th data-k="rra_status">RRA</th>
+        <th data-k="decision_date">Decision date</th>
+        <th>Detail</th>
+      </tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+  <div class="pager">
+    <button id="prev" class="btn ghost">Prev</button>
+    <span id="pageInfo"></span>
+    <button id="next" class="btn ghost">Next</button>
+  </div>
+</section>
+
+<dialog id="detail"><div id="detailBody"></div>
+  <form method="dialog"><button class="btn">Close</button></form></dialog>
+
+<footer><p>Source: GOV.UK residential property tribunal decisions. Figures are parsed
+  automatically. Rows flagged <strong>needs review</strong> are hidden by default;
+  untick the filter to inspect them. Rent conversion basis:
+  <span id="convMethod"></span>.</p></footer>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

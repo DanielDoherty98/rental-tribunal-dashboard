@@ -1,0 +1,76 @@
+name: Weekly refresh
+
+on:
+  schedule:
+    - cron: "0 6 * * 1"        # every Monday 06:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -r requirements.txt
+
+      # All three suites must pass before anything is scraped, so a parsing
+      # regression can never reach the published dashboard.
+      - name: Offline test suites
+        run: |
+          python tests/test_money.py
+          python tests/test_parser.py
+          python tests/test_api_422.py
+
+      - name: Verify API parameters are still accepted
+        run: python run_all.py --check
+
+      - name: Restore scrape cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            data/cache
+            data/raw
+          key: tribunal-v52-cache-${{ github.run_id }}
+          restore-keys: tribunal-v52-cache-
+
+      - name: Run pipeline
+        run: python run_all.py
+
+      - name: Commit refreshed data
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/data output data/index.json data/records.json
+          git diff --staged --quiet || git commit -m "Weekly refresh: $(date -u +%Y-%m-%d)"
+          git push
+
+      - name: Upload workbook
+        uses: actions/upload-artifact@v4
+        with:
+          name: rental-tribunal-workbook
+          path: output/*.xlsx
+          retention-days: 90
+
+  deploy-pages:
+    needs: refresh
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: main}
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with: {path: docs}
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,7 @@
+data/raw/
+data/cache/
+data/api_profile.json
+data/test_api_profile.json
+__pycache__/
+*.pyc
+~$*.xlsx

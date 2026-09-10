@@ -1,0 +1,15 @@
+name: tribunal
+channels: [conda-forge]
+dependencies:
+  - python=3.11
+  - requests
+  - beautifulsoup4
+  - lxml
+  - pandas
+  - openpyxl
+  - python-dateutil
+  - tqdm
+  - pip
+  - pip:
+      - pymupdf
+      - pdfminer.six
